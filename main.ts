@@ -45,6 +45,7 @@ const displayText = () => {
     let ctx = canvas.getContext("2d") 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.font = "24px sans-serif"
+    ctx.fillStyle = "white"
     for(let i = 0; i < buffer.rows.length; i++) {
         for(let j = buffer.rows[i].start; j < buffer.rows[i].end; j++) {
             ctx.fillText(buffer.text.data[j], (j-buffer.rows[i].start)*20, i*24)
