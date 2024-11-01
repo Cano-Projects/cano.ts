@@ -76,7 +76,7 @@ const displayText = () => {
     }
     let ctx = canvas.getContext("2d") 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.font = "24px sans-serif"
+    ctx.font = "normal 24px Verdana"
     ctx.fillStyle = "white"
     for(let i = 0; i < buffer.rows.length; i++) {
         for(let j = buffer.rows[i].start; j < buffer.rows[i].end; j++) {
