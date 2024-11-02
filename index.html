@@ -5,13 +5,31 @@
 			body {
 				background-color: #0B192C;
 			}
+	
+			.filename {
+				position: fixed;
+				width: 15vh;
+				height: 3vh;
+			}
+	
+			.save {
+				position: fixed;
+				left: 16vh;
+				width: 8vh;
+				height: 3vh;
+			}
+	
+			.canvas {
+				position: fixed;
+				top: 4vh;
+			}
 		</style>
 	</head>
 	<body>
 		<div>
-			<input type="text" id="filename" placeholder="File name..."></input>
-			<button type="button" onclick="handleSave()">Save</button>
-			<canvas style="background-color: #1E3E62" width="1000" height="1000" id="text"></canvas>
+			<input class="filename" type="text" id="filename" placeholder="File name..."></input>
+			<button class="save" type="button" onclick="handleSave()">Save</button>
+			<canvas class="canvas" style="background-color: #1E3E62" width="1000" height="1000" id="text"></canvas>
 		</div>
 	</body>
 </html>
