@@ -7,11 +7,17 @@ interface Row {
     end: number,
 }
 
+enum Mode {
+    NORMAL = 0,
+    INSERT,
+}
+
 interface Data {
     text: Buf,
     rows: Row[],
     cursor: number,
     focus: boolean,
+    mode: Mode,
 }
 
 let buffer: Data = {
@@ -19,6 +25,7 @@ let buffer: Data = {
     rows: [{ start: 0, end: 0 }],
     cursor: 0,
     focus: true,
+    mode: Mode.NORMAL,
 }
 
 const handleSave = () => {
@@ -32,6 +39,7 @@ const handleSave = () => {
     a.click()
     URL.revokeObjectURL(link)
 }
+
 
 window.addEventListener("mousemove", function(e) {
     const canvas = document.getElementById("text")
@@ -68,6 +76,18 @@ const bufferCalculateRows = () => {
     buffer.rows.push({start: start, end: buffer.text.data.length})
 }
 
+const displayMode = () => {
+    let canvas = <HTMLCanvasElement> document.getElementById("text")
+    if(!canvas) {
+        console.error("did not work")
+        alert("FAILED")
+    }
+    let ctx = canvas.getContext("2d") 
+    ctx.font = "24px Courier New"
+    ctx.fillStyle = "white"
+    ctx.fillText(Mode[buffer.mode], 10, canvas.height-10)
+}
+
 const displayText = () => {
     let canvas = <HTMLCanvasElement> document.getElementById("text")
     if(!canvas) {
@@ -76,23 +96,83 @@ const displayText = () => {
     }
     let ctx = canvas.getContext("2d") 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.font = "24px sans-serif"
+    ctx.font = "24px Courier New"
     ctx.fillStyle = "white"
     for(let i = 0; i < buffer.rows.length; i++) {
         for(let j = buffer.rows[i].start; j < buffer.rows[i].end; j++) {
             if(buffer.text.data[j] == undefined)
                 continue
-            ctx.fillText(buffer.text.data[j], (j-buffer.rows[i].start)*20, i*24)
+            ctx.fillText(buffer.text.data[j], (j-buffer.rows[i].start)*15, i*24)
         }
         if(buffer.cursor >= buffer.rows[i].start && buffer.cursor <= buffer.rows[i].end) {
             ctx.globalAlpha = 0.5 
-            ctx.fillRect((buffer.cursor-buffer.rows[i].start-1)*20, (i-1)*24, 20, 24)
+            if(buffer.cursor-buffer.rows[i].start == 0) 
+                ctx.fillRect((buffer.cursor-buffer.rows[i].start)*15, (i-1)*24, 15, 24)
+            else
+                ctx.fillRect((buffer.cursor-buffer.rows[i].start-1)*15, (i-1)*24, 15, 24)
             ctx.globalAlpha = 1.0 
         }
     }
+    displayMode()
 }
 
-const insertText = (key: KeyboardEvent) => {
+const cursor_up = () => {
+    let row = getCurrentRow()
+    if(row > 0) {
+        let cur = buffer.rows[row]
+        let offset = buffer.cursor - cur.start 
+        buffer.cursor = buffer.rows[row-1].start + offset
+    }
+    displayText()
+}
+
+const cursor_down = () => {
+    let row = getCurrentRow()
+    if(row < buffer.rows.length) {
+        let cur = buffer.rows[row]
+        let offset = buffer.cursor - cur.start 
+        buffer.cursor = buffer.rows[row+1].start + offset
+    }
+    displayText()
+}
+
+const cursor_left = () => {
+    if(buffer.cursor > 0) buffer.cursor--
+    displayText()
+}
+
+const cursor_right = () => {
+    if(buffer.cursor < buffer.text.data.length) buffer.cursor++
+    displayText()
+}
+
+const handle_normal_keys = (key: KeyboardEvent) => {
+    switch(key.key) {
+        case "i":
+            buffer.mode = Mode.INSERT
+            break
+        case "ArrowLeft":
+        case "h":
+            cursor_left()
+            break
+        case "ArrowDown":
+        case "j":
+            cursor_down()
+            break
+        case "ArrowUp":
+        case "k":
+            cursor_up()
+            break
+        case "ArrowRight":
+        case "l":
+            cursor_right()
+            break
+    }
+
+    return ""
+}
+
+const handle_insert_keys = (key: KeyboardEvent) => {
     let key_value = key.key
     switch(key.key) {
         case "Enter":
@@ -104,40 +184,43 @@ const insertText = (key: KeyboardEvent) => {
                 buffer.cursor--
             }
             displayText()
-            return
+            return ""
+        case "Escape":
+            buffer.mode = Mode.NORMAL
+            return ""
         case "Shift":
             return
         case "ArrowLeft":
-            if(buffer.cursor > 0) buffer.cursor--
-            displayText()
+            cursor_left()
             return
         case "ArrowRight":
-            if(buffer.cursor < buffer.text.data.length) buffer.cursor++
-            displayText()
+            cursor_right()
             return
-        case "ArrowUp": {
-            let row = getCurrentRow()
-            if(row > 0) {
-                let cur = buffer.rows[row]
-                let offset = buffer.cursor - cur.start 
-                buffer.cursor = buffer.rows[row-1].start + offset
-            }
-            displayText()
-        } return
+        case "ArrowUp":
+            cursor_up()
+        return
         case "ArrowDown": {
-            let row = getCurrentRow()
-            if(row < buffer.rows.length) {
-                let cur = buffer.rows[row]
-                let offset = buffer.cursor - cur.start 
-                buffer.cursor = buffer.rows[row+1].start + offset
-            }
-            displayText()
+            cursor_down()
         } return
     }
+    return key_value
+}
 
-    buffer.text.data = insertIntoString(buffer.text.data, key_value)
-    buffer.cursor += key_value.length
-    bufferCalculateRows()
+const insertText = (key: KeyboardEvent) => {
+    let key_value = key.key
+    switch(buffer.mode) {
+        case Mode.NORMAL:
+            key_value = handle_normal_keys(key)
+            break
+        case Mode.INSERT:
+            key_value = handle_insert_keys(key)
+            break 
+    }
+    if(key_value.length !== 0) {
+        buffer.text.data = insertIntoString(buffer.text.data, key_value)
+        buffer.cursor += key_value.length
+        bufferCalculateRows()
+    }
     displayText()
 }
 
@@ -148,3 +231,9 @@ window.addEventListener(
             insertText(key)
     }
 )
+
+const main = () => {
+    displayMode()
+}
+
+window.addEventListener("load", (_) => main())
