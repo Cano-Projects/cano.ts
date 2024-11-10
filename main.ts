@@ -44,7 +44,6 @@ const handleSave = () => {
 window.addEventListener("mousemove", function(e) {
     const canvas = document.getElementById("text")
     var rect = canvas.getBoundingClientRect()
-    console.log(rect.top, e.clientY)
     if(e.clientX > rect.left && e.clientY > rect.top && e.clientX < rect.right && e.clientY < rect.bottom)
         buffer.focus = true 
     else
@@ -122,6 +121,9 @@ const cursor_up = () => {
         let cur = buffer.rows[row]
         let offset = buffer.cursor - cur.start 
         buffer.cursor = buffer.rows[row-1].start + offset
+        if(buffer.cursor > buffer.rows[row-1].end) {
+            buffer.cursor = buffer.rows[row-1].end;
+        }
     }
     displayText()
 }
@@ -132,6 +134,9 @@ const cursor_down = () => {
         let cur = buffer.rows[row]
         let offset = buffer.cursor - cur.start 
         buffer.cursor = buffer.rows[row+1].start + offset
+        if(buffer.cursor > buffer.rows[row+1].end) {
+            buffer.cursor = buffer.rows[row+1].end;
+        }
     }
     displayText()
 }
