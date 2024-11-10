@@ -19,6 +19,14 @@
 				height: 3vh;
 			}
 	
+			.load {
+				position: fixed;
+				left: 25vh;
+				width: 8vh;
+				height: 3vh;
+			}
+	
+	
 			.canvas {
 				position: fixed;
 				top: 4vh;
@@ -29,6 +37,7 @@
 		<div>
 			<input class="filename" type="text" id="filename" placeholder="File name..."></input>
 			<button class="save" type="button" onclick="handleSave()">Save</button>
+			<input class="load" id="load" type="file" text="Load"></input>
 			<canvas class="canvas" style="background-color: #1E3E62" width="1000" height="1000" id="text"></canvas>
 		</div>
 	</body>

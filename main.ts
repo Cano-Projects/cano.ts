@@ -27,6 +27,8 @@ let buffer: Data = {
     focus: true,
     mode: Mode.NORMAL,
 }
+	
+let load_input = null
 
 const handleSave = () => {
     let filenameElem = <HTMLInputElement> document.getElementById("filename")
@@ -38,6 +40,21 @@ const handleSave = () => {
     a.download = filename
     a.click()
     URL.revokeObjectURL(link)
+}
+
+const handleLoad = async () => {
+	console.log("loading file...")
+    let filenameElem = <HTMLInputElement> document.getElementById("load")
+    let filename = filenameElem.files[0]	
+	const blob = new Blob([filename], { type: "text/plain" })
+	const url = URL.createObjectURL(blob)
+	const text = await new Response(blob).text()
+	buffer.cursor = 0
+	buffer.text.data = text
+	console.log(buffer.text.data, buffer.text.data.length)
+	bufferCalculateRows()
+	displayText()
+	filenameElem.value = null
 }
 
 
@@ -130,7 +147,8 @@ const cursor_up = () => {
 
 const cursor_down = () => {
     let row = getCurrentRow()
-    if(row < buffer.rows.length) {
+    if(row+1 < buffer.rows.length) {
+		if(row == 0) row = 1
         let cur = buffer.rows[row]
         let offset = buffer.cursor - cur.start 
         buffer.cursor = buffer.rows[row+1].start + offset
@@ -239,6 +257,8 @@ window.addEventListener(
 
 const main = () => {
     displayMode()
+	load_input = document.getElementById("load")
+	load_input.addEventListener("change", (_) => handleLoad())
 }
 
 window.addEventListener("load", (_) => main())
